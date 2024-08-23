@@ -1,0 +1,38 @@
+{% extends 'users/base.html' %}
+{% block body%}
+<div class="container py-5 flex justify-center shadow-lg">
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            <h2 class="text-3xl font-bold">📸 Create a Post</h2><br>
+        </div>
+        
+        <div>
+            <label for="new_password" class="block text-gray-700 text-sm font-bold mb-2">Add Title</label>
+            <div class="shadow appearance-none border rounded py-2 px-3 text-gray-700">
+                {{ form.title }}
+            </div>
+        </div>
+        <div>
+            <label for="retype_password" class="block text-gray-700 text-sm font-bold mb-2">Upload Image</label>
+            <div class="shadow appearance-none border rounded py-2 px-3 text-gray-700">
+                {{ form.image }}
+            </div>
+        </div>
+        <div>
+            <label for="retype_password" class="block text-gray-700 text-sm font-bold mb-2">Add Caption</label>
+            <div class="shadow appearance-none border rounded py-2 px-3 text-gray-700">
+                {{ form.caption }}
+            </div>
+        </div>
+        <div class="flex justify-center">
+            <button type="submit" class="bg-blue-500 text-white my-5 px-5 py-2 rounded">Submit</button>
+        </div>
+        
+    </form>
+</div>
+{% endblock %}
+
+
+
+    

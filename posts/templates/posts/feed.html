@@ -1,0 +1,115 @@
+{% extends 'users/base.html' %}
+
+{% load static %}
+{% block body %}
+    <div class="flex justify-center mt-10">
+        <h2 class="text-3xl font-semibold text-gray-800">
+            My Posts
+        </h2>
+    </div>
+    <div class="max-w-2xl mx-auto mt-10">
+        {% for post in posts %}
+        <!-- Instagram-like post card starts here -->
+        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-8">
+            <!-- User Info -->
+            <div class="flex items-center p-4">
+                <img src="{{ post.user.profile.photo.url }}" alt="Profile Picture" class="w-10 h-10 rounded-full mr-3">
+                <div>
+                    <p class="text-gray-900 font-semibold">{{ post.user.profile }}</p>
+                    <p class="text-sm text-gray-500">{{ post.created_at|date:"F j, Y" }}</p>
+                </div>
+            </div>
+            <!-- Post Image -->
+            <div>
+                <img src="{{ post.image.url }}" alt="Post Image" class="w-full h-auto object-cover">
+            </div>
+            <!-- Post Caption -->
+            {% if post.caption %}
+            <div class="p-4">
+                <p class="text-gray-800">{{ post.caption }}</p>
+            </div>
+            {% endif %}
+            <div class="px-5 py-5">
+                {% for comment in post.comments.all %}
+                <p><strong>{{ comment.posted_by }}:</strong> {{ comment.body }}</p>
+                <br>
+                {% endfor %}
+            </div>
+            <div class="px-5">
+                <form method="POST" class="bg-white shadow-mg m-10 w-4/5 rounded px-8 pt-6 pb-8 mb-4">
+                    {% csrf_token %}
+                    <div class="mb-2">
+                        <label class="block text-grey-700 text-sm font-bold mb-2">Add Comment</label>
+                    </div>
+                    <div class="shadow appearance-none border rounded py-2 px-3 mr-10 text-grey-700">
+                        {{ comment_form.body }}
+                    </div>
+                    <div>
+                        <input type="hidden" name="post_id" value="{{ post.id }}">
+                    </div>
+                    <br>
+                    <button type="submit" class="bg-green-500 text-white rounded px-5 py-2"> Add </button>
+                </form>
+            </div>
+            <!-- Post Interactions (like, comment, etc.) -->
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex justify-between text-gray-600">
+                    <a id="like-button-{{ post.id }}" class="btn-like">
+                        <img src="{% static 'users/images/like.png' %}" class="w-14 h-14 like-image" data-liked="{% if logged_user in post.liked_by.all %}true{% else %}false{% endif %}">
+                    </a>
+                    <span>Like</span>
+                    <button class="flex items-center space-x-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16h6m-7-6a7 7 0 0114 0v5a7 7 0 01-7 7H7a7 7 0 01-7-7v-5a7 7 0 017-7z" />
+                        </svg>
+                        <span>Comment</span>
+                    </button>
+                </div>
+                <p class="text-sm text-gray-500 mt-2 like-count">{{ post.likes_count }} likes</p>
+            </div>
+        </div>
+        <!-- Instagram-like post card ends here -->
+        {% endfor %}
+    </div>
+    <!-- jQuery inclusion -->
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <!-- Inline JavaScript code -->
+    <script>
+        $(document).ready(function(){
+            var csrfToken = "{{ csrf_token }}";
+
+            $(document).on('click', '.btn-like', function() {
+                var $likeButton = $(this);
+                var post_id = $likeButton.attr('id').split('-').pop();
+                var $likeImage = $likeButton.find('.like-image');
+                var isLiked = $likeImage.data('liked');
+
+                $.ajax({
+                    method: "POST",
+                    url: '/posts/like/',
+                    data: {
+                        post_id: post_id,
+                        csrfmiddlewaretoken: csrfToken
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Toggle the like button state
+                            if (isLiked) {
+                                $likeImage.attr('src', '{% static 'users/images/like.png' %}');
+                                $likeImage.data('liked', false);
+                            } else {
+                                $likeImage.attr('src', '{% static 'users/images/redlike.png' %}');
+                                $likeImage.data('liked', true);
+                            }
+                            // Update like count
+                            $likeButton.closest('.border-t').find('.like-count').text(response.likes_count + ' likes');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("Error: " + error);
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
